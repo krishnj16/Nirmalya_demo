@@ -1,27 +1,23 @@
+
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 contract GarbageRewardSystem {
-    // Struct to define the data for each garbage submission
     struct GarbageSubmission {
         uint256 submissionId;
         address submitter;
-        string trashType; // e.g., "plastic", "glass", "organic", "metal"
-        uint256 weightKg; // Weight in kilograms
-        string locationType; // e.g., "residential", "commercial", "industrial"
-        string citizenType; // e.g., "taxpayer", "ration_card_holder"
-        uint256 areaDirtinessLevel; // Level from 1 to 5
-        uint256 rewardAmount; // Reward in a base unit (e.g., wei, or a custom token unit)
+        string trashType;
+        uint256 weightKg;
+        string locationType;
+        string citizenType;
+        uint256 areaDirtinessLevel;
+        uint256 rewardAmount;
         uint256 timestamp;
     }
 
-    // Mapping to store submissions by their unique ID
     mapping(uint256 => GarbageSubmission) public submissions;
-
-    // Counter for unique submission IDs
     uint256 private nextSubmissionId;
 
-    // Event to log successful garbage submissions
     event GarbageSubmitted(
         uint256 indexed submissionId,
         address indexed submitter,
@@ -31,20 +27,16 @@ contract GarbageRewardSystem {
         uint256 timestamp
     );
 
-    // Constructor: Initializes the next submission ID
     constructor() {
         nextSubmissionId = 1;
     }
 
-    /**
-     * @dev Submits garbage separation data and records a reward.
-     * @param _trashType The type of trash (e.g., "plastic").
-     * @param _weightKg The weight of the trash in kilograms.
-     * @param _locationType The type of location where the trash was collected.
-     * @param _citizenType The type of citizen submitting the trash.
-     * @param _areaDirtinessLevel The dirtiness level of the area (1-5).
-     * @param _rewardAmount The calculated reward amount for this submission.
-     */
+    // Public getter for nextSubmissionId (for frontend reference)
+    function getNextSubmissionId() public view returns (uint256) {
+        return nextSubmissionId;
+    }
+
+
     function submitGarbage(
         string memory _trashType,
         uint256 _weightKg,
@@ -82,6 +74,7 @@ contract GarbageRewardSystem {
         );
     }
 
+
     function getSubmission(uint256 _submissionId)
         public
         view
@@ -99,7 +92,6 @@ contract GarbageRewardSystem {
     {
         GarbageSubmission storage submission = submissions[_submissionId];
         require(submission.submissionId != 0, "Submission does not exist");
-
         return (
             submission.submissionId,
             submission.submitter,
@@ -113,10 +105,7 @@ contract GarbageRewardSystem {
         );
     }
 
-    /**
-     * @dev Returns the total number of submissions made so far.
-     * @return The total count of submissions.
-     */
+
     function getTotalSubmissions() public view returns (uint256) {
         return nextSubmissionId - 1;
     }
