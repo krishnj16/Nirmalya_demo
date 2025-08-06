@@ -1,31 +1,58 @@
-# from flask import Flask, request, jsonify
-# import pandas as pd
-# import pickle
-# import shap
-# from flask_cors import CORS
+import sys
+import json
+import pickle
+import pandas as pd
+from web3 import Web3
+import os
+from dotenv import load_dotenv
 
-# app = Flask(__name__)
-# CORS(app)  # Enable CORS for all routes
+# Load environment variables
+load_dotenv()
 
-# # Load the pre-trained model
-# with open("model.pkl", "rb") as f:
-#     model = pickle.load(f)
+# Web3 setup
+WEB3_PROVIDER_URL = os.getenv('WEB3_PROVIDER_URL', 'https://linea-mainnet.infura.io/v3/a071101f3d1540f9b480e1030c141407')
+CONTRACT_ADDRESS = os.getenv('CONTRACT_ADDRESS', '0xd9145CCE52D386f254917e481eB44e9943F39138')
+SENDER_PRIVATE_KEY = os.getenv('SENDER_PRIVATE_KEY', '')
 
-# # Load the list of feature names the model was trained on
-# with open("features.pkl", "rb") as f:
-#     model_features = pickle.load(f)
+# Initialize Web3
+w3 = Web3(Web3.HTTPProvider(WEB3_PROVIDER_URL))
 
-# # Load the original training data (only features, no target)
-# try:
-#     train_df = pd.read_csv("trash_rewards_dataset.csv")
-#     train_df = train_df.drop(columns=["reward"])
-# except FileNotFoundError:
-#     print("Error: 'trash_rewards_dataset.csv' not found. Please ensure it's in the correct directory.")
-#     # UPDATED to include citizen_type
-#     train_df = pd.DataFrame(columns=['trash_type', 'weight_kg', 'location_type', 'citizen_type', 'area_dirtiness_level'])
+def predict_reward(data):
+    try:
+        # Load the model
+        with open("ml/model.pkl", "rb") as f:
+            model = pickle.load(f)
 
+        # Create a DataFrame with the input data
+        input_data = pd.DataFrame([{
+            'trash_type': data['trash_type'],
+            'weight_kg': float(data['weight_kg']),
+            'location_type': data['location_type'],
+            'citizen_type': data['citizen_type'],
+            'area_dirtiness_level': int(data['area_dirtiness_level'])
+        }])
 
-# @app.route('/predict-reward', methods=['POST'])
+        # Make prediction
+        predicted_reward = model.predict(input_data)[0]
+        
+        # Round to 2 decimal places
+        predicted_reward = round(float(predicted_reward), 2)
+        
+        return {
+            'success': True,
+            'predicted_reward': predicted_reward,
+            'message': 'Prediction successful',
+            'transaction_data': {
+                'contract_address': CONTRACT_ADDRESS,
+                'network': 'linea',
+            }
+        }
+    except Exception as e:
+        return {
+            'success': False,
+            'error': str(e),
+            'message': 'Failed to make prediction'
+        }
 # def predict_reward():
 #     """
 #     Predicts a reward based on input data and explains the prediction.
@@ -109,7 +136,7 @@ else:
     print(f"Connected to Ethereum node: {WEB3_PROVIDER_URL}")
 
 # Replace with your deployed contract address
-CONTRACT_ADDRESS = "YOUR_DEPLOYED_CONTRACT_ADDRESS" # e.g., "0x..."
+CONTRACT_ADDRESS = "0xd9145CCE52D386f254917e481eB44e9943F39138" # e.g., "0x..."
 
 # Load your contract's ABI (Application Binary Interface)
 # You get this from Remix after compiling your contract.
