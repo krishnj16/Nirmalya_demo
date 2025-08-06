@@ -57,49 +57,17 @@ const Predictor = () => {
     });
   };
 
-  const [metamaskConnected, setMetamaskConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState('');
-
-  const connectMetaMask = async () => {
-    if (typeof window.ethereum !== 'undefined') {
-      try {
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-        setWalletAddress(accounts[0]);
-        setMetamaskConnected(true);
-        setError('');
-      } catch (err) {
-        setError('Failed to connect to MetaMask');
-        console.error(err);
-      }
-    } else {
-      setError('Please install MetaMask to use this feature');
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
     setResult(null);
 
-    if (!metamaskConnected) {
-      await connectMetaMask();
-      if (!metamaskConnected) {
-        setIsLoading(false);
-        return;
-      }
-    }
-
     try {
-      // First get the prediction from the ML model
-      const response = await fetch('http://127.0.0.1:5000/predict-and-store-reward', {
+      const response = await fetch('http://127.0.0.1:5000/predict-reward', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          wallet_address: walletAddress
-        }),
+        body: JSON.stringify(formData),
       });
 
       if (!response.ok) {
@@ -108,17 +76,8 @@ const Predictor = () => {
 
       const data = await response.json();
       setResult(data);
-
-      // Wait for blockchain transaction to complete
-      if (data.transaction_hash) {
-        await window.ethereum.request({
-          method: 'eth_waitForTransactionReceipt',
-          params: [data.transaction_hash],
-        });
-      }
-
     } catch (err) {
-      setError('Failed to process submission. Please try again.');
+      setError('Failed to fetch prediction. Is the backend server running?');
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -158,21 +117,7 @@ const Predictor = () => {
 
   return (
     <div className="predictor-container">
-      <div className="header">
-        <h1>Reward Predictor</h1>
-        <div className="wallet-status">
-          {metamaskConnected ? (
-            <div className="connected">
-              <span className="dot green"></span>
-              {`${walletAddress.substring(0, 6)}...${walletAddress.substring(38)}`}
-            </div>
-          ) : (
-            <button className="connect-wallet" onClick={connectMetaMask}>
-              Connect Wallet
-            </button>
-          )}
-        </div>
-      </div>
+      <h1>Reward Predictor</h1>
       <form onSubmit={handleSubmit} className="predictor-form">
         <label>
           Trash Type
@@ -222,9 +167,8 @@ const Predictor = () => {
             />
           </div>
         </label>
-        <button type="submit" disabled={isLoading} className={`submit-button ${isLoading ? 'loading' : ''}`}>
-          {isLoading ? 'Processing Transaction...' : 'Submit & Get Reward'}
-          {isLoading && <div className="spinner"></div>}
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? 'Predicting...' : 'Predict Reward'}
         </button>
       </form>
 
