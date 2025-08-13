@@ -1,0 +1,21 @@
+Map component Utilises Leaflet-js, Maptiler
+
+Use https://www.convertcsv.com/csv-to-json.htm to convert your data from CSV to JSON
+Your data should be in the format
+[
+  [latitude, longitude, value],
+  [latitude, longitude, value],
+  ...
+  [latitude, longitude, value],
+  ]
+
+You will need a Maptiler API for running this component
+
+Utilise https://github.com/Leaflet/Leaflet.heat for
+minOpacity -  the minimum opacity the heat will start at
+maxZoom - zoom level where the points reach maximum intensity (as intensity scales with zoom), equals maxZoom of the map by default
+max - maximum point intensity, 1.0 by default
+radius - radius of each "point" of the heatmap, 25 by default
+blur - amount of blur, 15 by default
+gradient - color gradient config, e.g. {0.4: 'blue', 0.65: 'lime', 1: 'red'}
+pane - Map pane where the heat will be drawn. Defaults to 'overlayPane'
