@@ -1,0 +1,11 @@
+your data should be in the format 
+
+[
+[latitude, longitude, value],
+[latitude, longitude, value],
+...
+[latitude, longitude, value],
+]
+
+use this to convert excel/csv data to json 
+https://www.convertcsv.com/csv-to-json.htm
